@@ -7,9 +7,9 @@
 #include <cpu-features.h>
 #include <cstdint>
 #include <vector>
+#include <array>
 #include <limits>
-#include <boost/thread/thread.hpp>
-#include <boost/thread/future.hpp>
+#include <functional>
 
 namespace std {
 	typedef ::int8_t   int8_t;
@@ -42,19 +42,19 @@ namespace {
 	constexpr color_type blue (rgb_type rgb) { return color<SHIFT::BLUE >(rgb) & 0xFF; }
 
 	template <short SHIFT>
-	constexpr void merge(rgb_type& rgb, color_type color) {
+	constexpr void merge_value(rgb_type& rgb, color_type color) {
 		rgb |= (color & 0xFF) << SHIFT;
 	}
 
 	template <short SHIFT>
-	void merge( buffer_type::reference collection, color_buffer_type::const_iterator it ) {
+	void mergeFunc( buffer_type& collection, color_buffer_type::const_iterator it ) {
 		for( auto& value : collection ){
-			merge<SHIFT>(value, *it);
+			merge_value<SHIFT>(value, *it);
 			++it;
 		}
 	}
 
-	size_t offset(size_t x, size_t y, size_t width) {
+	constexpr size_t offset(size_t x, size_t y, size_t width) {
 		return y * width + x;
 	}
 
@@ -77,7 +77,7 @@ namespace {
 						const auto kern = kernel[(2 + dx) + (2 + dy) * 5];
 						// Save old value to enable under/overflow detection
 						auto old = value;
-						value += channel_pixel<SHIFT>( x + dx, y + dy ) * kern;
+						value += channel_pixel<SHIFT>( input, x + dx, y + dy, width ) * kern;
 
 						// Handle underflow
 						if( kern < 0 && value > old )
@@ -118,22 +118,16 @@ namespace {
 		return output;
 	}
 
-	typedef boost::shared_future<color_buffer_type> process_function;
-
-	template <typename FT>
-	boost::packaged_task<color_buffer_type> start(FT function, const buffer_type& buffer, size_t width, size_t height, int* kernel ) {
-		boost::packaged_task<color_buffer_type> task( boost::bind( function, std::ref(buffer), width, height, kernel ) );
-		return task;
-	}
-
-	typedef std::function<void(color_buffer_type::const_iterator)>                        merge_function;
+	typedef std::function<color_buffer_type()> process_function;
+	typedef std::function<void(color_buffer_type::const_iterator)>    merge_function;
 	typedef std::tuple<process_function, merge_function> function_tuple;
 
 	template <short SHIFT>
 	function_tuple make_tuple( buffer_type& buffer, size_t width, size_t height, int const * kernel ) {
-		auto proc  = start( colorFunc<SHIFT>, std::ref(buffer), width, height, kernel );
-		auto merge = std::bind( merge<SHIFT>, _1 );
-		return function_tuple( proc.get_future(), merge );
+		process_function proc  = std::bind( &colorFunc<SHIFT>, std::ref(buffer), width, height, kernel );
+
+		merge_function merge = std::bind( &mergeFunc<SHIFT>, std::ref(buffer), std::placeholders::_1 );
+		return function_tuple( proc, merge );
 	}
 
 	void proc( size_t width, size_t height, int const* kernel ) {
@@ -142,7 +136,7 @@ namespace {
 		BUFFER.reserve( width * height );
 		glReadPixels( 0, 0, width, height, GL_RGB, GL_UNSIGNED_INT, BUFFER.data() );
 
-		auto function_tuples = [&]() -> std::array<function_tuple> {
+		auto function_tuples = [&]() -> std::array<function_tuple, 3> {
 			std::array<function_tuple, 3> temp{{
 				make_tuple<SHIFT::RED  >(BUFFER, width, height, kernel),
 				make_tuple<SHIFT::GREEN>(BUFFER, width, height, kernel),
@@ -152,17 +146,33 @@ namespace {
 
 		buffer_type output( width * height, 0xFF000000 );
 
-		// Wait on all processing to commence
-		for( auto future : function_tuples ) {
-			// Apply serialized so no locking necessary
+		{
+			// Try to move all resulting output to temporary
+			// array so we remove data dependency and
+			// enable vectorizing
+			std::array<color_buffer_type, 3> outputs;
 
-			process_function future;
-			merge_function   merger;
-			std::tie( future, merger ) = future;
+			auto outputIt = outputs.begin();
 
-			// Get processed channel
-			auto colorOutput = future.get();
-			merger( output, colorOutput.begin() );
+			// Data should have no dependency
+			for( auto tuple : function_tuples ) {
+				// Apply serialized so no locking necessary
+
+				process_function function;
+				std::tie( function, std::ignore ) = tuple;
+
+				// Get processed channel
+				*outputIt = function();
+			}
+
+			outputIt = outputs.begin();
+
+			for( auto tuple : function_tuples ) {
+				merge_function merger;
+				std::tie( std::ignore, merger ) = tuple;
+
+				merger( outputIt->begin() );
+			}
 		}
 
 		// After last merge result should be sufficient
