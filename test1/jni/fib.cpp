@@ -202,7 +202,11 @@ namespace {
 
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO   , LOG_TAG, __VA_ARGS__))
 
-extern "C" JNIEXPORT void JNICALL Java_com_example_test1_NativeConvolution_nativeConvolute(JNIEnv *, jclass, jint texName, jarray kernel) {
+extern "C" JNIEXPORT void JNICALL Java_de_hsbremen_android_NativeConvolutionProcessor_nativeConvolute(JNIEnv *, jclass, jint width, jint height, jint texName, jarray kernel) {
+	proc(width, height, kernel);
+
+	glBindTexture( GL_TEXTURE_EXTERNAL_OES, texName );
+
 #if 0
 	{
 		auto t0 = now();
