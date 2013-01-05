@@ -1,19 +1,27 @@
 package de.hsbremen.android.convolution.nio;
 
-import android.graphics.SurfaceTexture;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+
 import de.hsbremen.android.convolution.IProcessor;
+import de.hsbremen.android.convolution.ProgressListener;
+import de.hsbremen.android.convolution.RenderListener;
 
 public class Processor
 implements IProcessor {
 	
 	static {
-		System.loadLibrary("fib");
+		System.loadLibrary("convolute");
 	}
 	
-	private static native void nativeConvolute( int width, int height, int texName, int[] kernel );
+	public native void native_process( ByteBuffer frame, int width, int height, IntBuffer kernel, ProgressListener progress, RenderListener renderListener );
+	
+	//private static native void nativeConvolute( ByteBuffer frame, int width, int height, IntBuffer kernel );
 
-	public void Process(SurfaceTexture texture, int width, int height, int[] kernel) {
-		nativeConvolute( texture.getTexName(), kernel );
+	// frame and kernel need to be directly allocated, so they can be easily accessed by
+	// native code
+	@Override
+	public void process( ByteBuffer frame, int width, int height, int[] kernel, ProgressListener progress, RenderListener renderListener ) {
+		
 	}
-
 }

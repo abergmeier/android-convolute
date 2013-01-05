@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+    <item android:id="@+id/convolute_blur" android:title="@string/option_item_convolute_blur"></item>
+    <item android:id="@+id/convolute_edge" android:title="@string/option_item_convolute_edge"></item>
+    <item android:id="@+id/convolute_reset" android:title="@string/option_item_convolute_reset"></item>
+    
+
+</menu>

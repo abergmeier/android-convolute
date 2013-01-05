@@ -1,7 +1,11 @@
 package de.hsbremen.android.convolution;
 
-import android.graphics.SurfaceTexture;
+import java.nio.ByteBuffer;
+
 
 public interface IProcessor {
-	void Process( SurfaceTexture texture, int width, int height, int[] kernel );
+	void process( ByteBuffer frame,
+	              int width, int height,
+	              int[] kernel,
+	              ProgressListener progress, RenderListener renderListener );
 }

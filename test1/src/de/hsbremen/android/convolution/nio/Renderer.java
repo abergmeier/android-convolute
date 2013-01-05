@@ -1,14 +1,11 @@
 package de.hsbremen.android.convolution.nio;
 
-import de.hsbremen.android.convolution.nio.Processor;
+import de.hsbremen.android.convolution.ProgressListener;
+import de.hsbremen.android.convolution.RenderListener;
 
 public class Renderer
-extends de.hsbremen.android.Renderer {
-	public Renderer() {
-		super( new Processor() );
-	}
-
-	@Override
-	protected void onDrawFrame() {
+extends de.hsbremen.android.convolution.Renderer<Processor> {
+	public Renderer( ProgressListener progress, RenderListener renderListener) {
+		super( new Processor(), progress, renderListener);
 	}
 }

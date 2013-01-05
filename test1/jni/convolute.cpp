@@ -1,10 +1,9 @@
-
 #include <jni.h>
 #include <android/log.h>
 #include <ctime>
 #include <algorithm>
 #include <GLES2/gl2.h>
-#include <cpu-features.h>
+#include <GLES2/gl2ext.h>
 #include <cstdint>
 #include <vector>
 #include <array>
@@ -129,21 +128,13 @@ namespace {
 		merge_function merge = std::bind( &mergeFunc<SHIFT>, std::ref(buffer), std::placeholders::_1 );
 		return function_tuple( proc, merge );
 	}
-
-	void proc( size_t width, size_t height, int const* kernel ) noexcept {
-		// Make sure we have enough space
-		static buffer_type BUFFER;
-		BUFFER.reserve( width * height );
-		glReadPixels( 0, 0, width, height, GL_RGB, GL_UNSIGNED_INT, BUFFER.data() );
-
-		auto function_tuples = [&]() -> std::array<function_tuple, 3> {
-			std::array<function_tuple, 3> temp{{
-				make_tuple<SHIFT::RED  >(BUFFER, width, height, kernel),
-				make_tuple<SHIFT::GREEN>(BUFFER, width, height, kernel),
-				make_tuple<SHIFT::BLUE >(BUFFER, width, height, kernel) }};
-			return temp;
-		}();
-
+	void exec( const std::array<function_tuple, 3> function_tuples,
+		           size_t width,
+		           size_t height ) __attribute__ ((pure));
+	// Use pure function to help optimizer
+	void exec( const std::array<function_tuple, 3> function_tuples,
+	           size_t width,
+	           size_t height ) {
 		buffer_type output( width * height, 0xFF000000 );
 
 		{
@@ -152,30 +143,98 @@ namespace {
 			// enable vectorizing
 			std::array<color_buffer_type, 3> outputs;
 
-			auto outputIt = outputs.begin();
+			{
+				auto outputIt = outputs.begin();
 
-			// Data should have no dependency
-			for( auto tuple : function_tuples ) {
-				// Apply serialized so no locking necessary
+				// Data should have no dependency
+				for( auto tuple : function_tuples ) {
+					// Apply serialized so no locking necessary
 
-				process_function function;
-				std::tie( function, std::ignore ) = tuple;
+					process_function function;
+					std::tie( function, std::ignore ) = tuple;
 
-				// Get processed channel
-				*outputIt = function();
+					// Get processed channel
+					*outputIt = function();
+				}
 			}
 
-			outputIt = outputs.begin();
+			{
+				auto outputIt = outputs.begin();
 
-			for( auto tuple : function_tuples ) {
-				merge_function merger;
-				std::tie( std::ignore, merger ) = tuple;
+				for( auto tuple : function_tuples ) {
+					merge_function merger;
+					std::tie( std::ignore, merger ) = tuple;
 
-				merger( outputIt->begin() );
+					merger( outputIt->begin() );
+				}
+				// After last merge result should be sufficient
 			}
 		}
+	}
 
-		// After last merge result should be sufficient
+	const buffer_type& convolute( buffer_type&  buffer, size_t width, size_t height, int32_t const* kernel ) noexcept {
+
+		auto function_tuples = [&]() -> std::array<function_tuple, 3> {
+			std::array<function_tuple, 3> temp{{
+				make_tuple<SHIFT::RED  >(buffer, width, height, kernel),
+				make_tuple<SHIFT::GREEN>(buffer, width, height, kernel),
+				make_tuple<SHIFT::BLUE >(buffer, width, height, kernel) }};
+			return temp;
+		}();
+
+		exec( function_tuples, width, height );
+	}
+
+	template <typename T>
+	inline T clamp(T value, T min, T max) {
+		return std::min(std::max(value, min), max);
+	}
+
+	template <typename T>
+	inline T clamp8( T value ) {
+		return clamp( value, 0, 255 );
+	}
+
+	inline rgb_type convertYUVtoRGB( std::uint8_t y, std::uint8_t u, std::uint8_t v) {
+		auto rs = y + (unsigned short)(1.402f * v);
+		auto gs = y - (unsigned short)(0.344f * u + 0.714f * v);
+		auto bs = y + (unsigned short)(1.772f * u);
+		// Normalize values
+		color_type r = clamp8( rs );
+		color_type g = clamp8( gs );
+		color_type b = clamp8( bs );
+		return r << 16
+		     | g <<  8
+		     | r <<  0;
+}
+
+	void convertYUV420_NV21toRGB888( std::int8_t* data, std::size_t width, std::size_t height, buffer_type& rgb ) {
+		const auto size = width * height;
+		const auto offset = size;
+
+		rgb.reserve( size );
+
+		// i along Y and the final pixels
+		// k along pixels U and V
+		for( size_t i = 0, k = 0; i < size; i += 2, k += 2) {
+			const auto y1 = data[i + 0];
+			const auto y2 = data[i + 1];
+			const auto y3 = data[i + width + 0];
+			const auto y4 = data[i + width + 1];
+
+			auto u = data[k + offset + 0];
+			auto v = data[k + offset + 1];
+			u = u-128;
+			v = v-128;
+
+			rgb[i + 0] = convertYUVtoRGB(y1, u, v);
+			rgb[i + 1] = convertYUVtoRGB(y2, u, v);
+			rgb[i + width + 0] = convertYUVtoRGB(y3, u, v);
+			rgb[i + width + 1] = convertYUVtoRGB(y4, u, v);
+
+			if (i != 0 && (i + 2) % width == 0 )
+				i += width;
+		}
 	}
 
 /*
@@ -202,10 +261,43 @@ namespace {
 
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO   , LOG_TAG, __VA_ARGS__))
 
-extern "C" JNIEXPORT void JNICALL Java_de_hsbremen_android_NativeConvolutionProcessor_nativeConvolute(JNIEnv *, jclass, jint width, jint height, jint texName, jarray kernel) {
-	proc(width, height, kernel);
+extern "C" JNIEXPORT
+void JNICALL Java_de_hsbremen_android_convolution_nio_Processor_Process(JNIEnv * pEnv, jclass, jobject frame, jint width, jint height, jobject kernelObject) {
+	auto frameBuffer = static_cast<std::int8_t*>( pEnv->GetDirectBufferAddress(frame) );
+	auto kernel = static_cast<int32_t*>( pEnv->GetDirectBufferAddress(kernelObject) );
 
-	glBindTexture( GL_TEXTURE_EXTERNAL_OES, texName );
+	// Make sure we have enough space
+	static buffer_type BUFFER;
+
+	convertYUV420_NV21toRGB888( frameBuffer, width, height, BUFFER );
+
+	convolute( BUFFER, width, height, kernel );
+
+	// Copy data to GL_TEXTURE_EXTERNAL_OES storage
+	glTexImage2D( GL_TEXTURE_EXTERNAL_OES,
+	              0,
+	              GL_RGB,
+	              width,
+	              height,
+	              0,
+	              GL_RGB,
+	              GL_UNSIGNED_INT,
+	              BUFFER.data() );
+/*
+
+	// Load the vertex data
+	GLES20.glVertexAttribPointer( _vertexPosition, 3, GLES20.GL_FLOAT,
+	                              false, 0, mCube.getVertices() );
+	GLES20.glEnableVertexAttribArray( _vertexPosition );
+
+	// Load the MVP matrix
+	GLES20.glUniformMatrix4fv( mMVPLoc, 1, false,
+	                           mMVPMatrix.getAsFloatBuffer() );
+
+	// Draw the cube
+	GLES20.glDrawElements( GLES20.GL_TRIANGLES, mCube.getNumIndices(),
+	                       GLES20.GL_UNSIGNED_SHORT, mCube.getIndices());
+*/
 
 #if 0
 	{
@@ -221,3 +313,4 @@ extern "C" JNIEXPORT void JNICALL Java_de_hsbremen_android_NativeConvolutionProc
 	}
 #endif
 }
+
