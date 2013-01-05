@@ -12,7 +12,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
-public abstract class Renderer<T extends IProcessor> {
+public abstract class Renderer<T extends Processor> {
 	private static class Multiple<MT> {
 		public final Lock unusedLock = new ReentrantLock();
 		public MT unused;
@@ -73,7 +73,7 @@ public abstract class Renderer<T extends IProcessor> {
 			executeInRenderThread( new Runnable() {
 				@Override
 				public void run() {
-					getProcessor().process( buffer, width, height, kernel, _progress, _renderListener );
+					getProcessor().convolute( buffer, width, height, kernel, _progress, _renderListener );
 					setUnused( _buffers, buffer );
 					setUnused( _kernels, kernel );
 				}
