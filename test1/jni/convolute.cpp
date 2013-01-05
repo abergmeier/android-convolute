@@ -195,24 +195,44 @@ namespace {
 		return clamp( value, 0, 255 );
 	}
 
-	inline rgb_type convertYUVtoRGB( std::uint8_t y, std::uint8_t u, std::uint8_t v) {
-		auto rs = y + (unsigned short)(1.402f * v);
-		auto gs = y - (unsigned short)(0.344f * u + 0.714f * v);
-		auto bs = y + (unsigned short)(1.772f * u);
+	inline void convertYUVtoRGB( std::uint8_t y, std::uint8_t u, std::uint8_t v, buffer_type& rgb, std::size_t index ) {
+		const auto rs = y + (unsigned short)(1.402f * v);
+		const auto gs = y - (unsigned short)(0.344f * u + 0.714f * v);
+		const auto bs = y + (unsigned short)(1.772f * u);
 		// Normalize values
-		color_type r = clamp8( rs );
-		color_type g = clamp8( gs );
-		color_type b = clamp8( bs );
-		return r << 16
-		     | g <<  8
-		     | r <<  0;
-}
 
-	void convertYUV420_NV21toRGB888( std::int8_t* data, std::size_t width, std::size_t height, buffer_type& rgb ) {
+		rgb[ index + 0 ] = clamp8( rs );
+		rgb[ index + 1 ] = clamp8( gs );
+		rgb[ index + 2 ] = clamp8( bs );
+	}
+
+	jmethodID getMethod( JNIEnv * pEnv, jobject progress, const char* name, const char* signature ) {
+		auto clazz = pEnv->GetObjectClass( progress );
+		return pEnv->GetMethodID( clazz, name, signature );
+	}
+
+	jmethodID incrementMethod( JNIEnv * pEnv, jobject progress ) {
+		static auto METHOD_ID = getMethod( pEnv, progress, "incrementBy", "(I)V" );
+		return METHOD_ID;
+	}
+
+	jmethodID getMaxMethod( JNIEnv * pEnv, jobject progress ) {
+		static auto METHOD_ID = getMethod( pEnv, progress, "getMax" , "()I" );
+		return METHOD_ID;
+	}
+
+	jmethodID setMaxMethod( JNIEnv * pEnv, jobject progress ) {
+		static auto METHOD_ID = getMethod( pEnv, progress, "setMax" , "(I)V" );
+		return METHOD_ID;
+	};
+
+	void convertYUV420_NV21toRGB888( std::uint8_t* data,
+	                                 std::size_t width, std::size_t height, std::uint8_t bytesPerPixel,
+	                                 buffer_type& rgb, std::function<void(jint)>& increaseProgress ) {
 		const auto size = width * height;
 		const auto offset = size;
 
-		rgb.reserve( size );
+		rgb.resize( size * bytesPerPixel );
 
 		// i along Y and the final pixels
 		// k along pixels U and V
@@ -227,13 +247,15 @@ namespace {
 			u = u-128;
 			v = v-128;
 
-			rgb[i + 0] = convertYUVtoRGB(y1, u, v);
-			rgb[i + 1] = convertYUVtoRGB(y2, u, v);
-			rgb[i + width + 0] = convertYUVtoRGB(y3, u, v);
-			rgb[i + width + 1] = convertYUVtoRGB(y4, u, v);
+			convertYUVtoRGB( y1, u, v, rgb, i + 0         );
+			convertYUVtoRGB( y2, u, v, rgb, i + 1         );
+			convertYUVtoRGB( y3, u, v, rgb, i + width + 0 );
+			convertYUVtoRGB( y4, u, v, rgb, i + width + 1 );
 
-			if (i != 0 && (i + 2) % width == 0 )
+			if (i != 0 && (i + 2) % width == 0 ) {
 				i += width;
+				increaseProgress( width * 2 );
+			}
 		}
 	}
 
@@ -256,11 +278,47 @@ namespace {
 		return t1 - t0;
 	}
 
-	const char* LOG_TAG = "FIB_TEST";
+	const char* LOG_TAG = "CONVOLUTE";
 }
 
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO   , LOG_TAG, __VA_ARGS__))
+#define LOGE(...) ((void)__android_log_print(ANDROID_LOG_ERROR  , LOG_TAG, __VA_ARGS__))
 
+extern "C" JNIEXPORT void JNICALL
+Java_de_hsbremen_android_convolution_nio_Processor_nativeProcess( JNIEnv * pEnv, jclass, jobject frameBuffer, jint width, jint height, jbyte bytesPerPixel,
+                                                                  jobject kernelObject, jobject outputBuffer, jobject progress ) {
+	auto frame  = static_cast<std::uint8_t*>( pEnv->GetDirectBufferAddress(frameBuffer ) );
+	auto kernel = static_cast<int32_t*     >( pEnv->GetDirectBufferAddress(kernelObject) );
+	auto output = static_cast<std::uint8_t*>( pEnv->GetDirectBufferAddress(outputBuffer) );
+
+	// Make sure we have enough space
+	static buffer_type BUFFER;
+
+	{
+		const auto size = width * height;
+		auto methodId = setMaxMethod( pEnv, progress );
+		pEnv->CallVoidMethod( progress, methodId, size * 2);
+	}
+	{
+		std::function<void(jint)> increaseProgress = [&]( jint increase ) {
+			auto methodId = incrementMethod( pEnv, progress );
+			pEnv->CallVoidMethod( progress, methodId, increase );
+		};
+		convertYUV420_NV21toRGB888( frame, width, height, bytesPerPixel, BUFFER, increaseProgress );
+	}
+
+	{
+		auto destSize = pEnv->GetDirectBufferCapacity( outputBuffer );
+		if( destSize < BUFFER.size() ) {
+			LOGE( "Cannot copy %u to output of size %d.", BUFFER.size(), destSize );
+			return;
+		}
+	}
+
+	std::copy( BUFFER.begin(), BUFFER.end(), output );
+}
+
+/*
 extern "C" JNIEXPORT
 void JNICALL Java_de_hsbremen_android_convolution_nio_Processor_Process(JNIEnv * pEnv, jclass, jobject frame, jint width, jint height, jobject kernelObject) {
 	auto frameBuffer = static_cast<std::int8_t*>( pEnv->GetDirectBufferAddress(frame) );
@@ -297,7 +355,7 @@ void JNICALL Java_de_hsbremen_android_convolution_nio_Processor_Process(JNIEnv *
 	// Draw the cube
 	GLES20.glDrawElements( GLES20.GL_TRIANGLES, mCube.getNumIndices(),
 	                       GLES20.GL_UNSIGNED_SHORT, mCube.getIndices());
-*/
+
 
 #if 0
 	{
@@ -313,4 +371,4 @@ void JNICALL Java_de_hsbremen_android_convolution_nio_Processor_Process(JNIEnv *
 	}
 #endif
 }
-
+*/
