@@ -11,5 +11,8 @@
     <string name="option_item_convolute_blur">Blur</string>
     <string name="option_item_convolute_edge">Edge</string>
     <string name="option_item_convolute_reset">Reset</string>
+    <string name="convolution_fragment_name_java">Android SDK</string>
+    <string name="convolution_fragment_name_native">Android NDK</string>
+    <string name="convolution_camera_name">Android Camera</string>
 
 </resources>

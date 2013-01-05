@@ -10,20 +10,26 @@
 </TextureView>
  -->
 
-<ProgressBar
-    android:id="@+id/progress_bar"
-    style="?android:attr/progressBarStyleHorizontal"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_alignParentTop="true" />
-
 <ImageView
     android:id="@+id/image_view"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_alignParentBottom="true"
-    android:layout_below="@id/progress_bar" >
+    android:layout_alignTop="@+id/text_view" />
 
-</ImageView>
+<ProgressBar
+    android:id="@+id/progress_bar"
+    style="?android:attr/progressBarStyleHorizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_alignTop="@id/text_view" />
+
+<TextView
+    android:id="@id/text_view"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_alignParentLeft="true"
+    android:layout_alignParentTop="true"
+    android:background="@color/camera_text_background" />
 
 </RelativeLayout>

@@ -1,7 +1,5 @@
 package de.hsbremen.android.convolution;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -10,7 +8,6 @@ import android.app.ActivityManager;
 import android.content.Context;
 import android.content.pm.ConfigurationInfo;
 import android.graphics.Bitmap;
-import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory;
 import android.graphics.BitmapFactory.Options;
 import android.os.Build;
@@ -24,6 +21,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import de.hsbremen.android.convolution.stream.BMPRGB888Stream;
 import de.hsbremen.android.convolution.stream.ByteBufferInputStream;
 
@@ -215,5 +213,10 @@ extends android.app.Fragment {
 		
 		// Inflate the layout for this fragment
 		return inflater.inflate(R.layout.gl_view, container, false);
+	}
+
+	public void setName(int stringId) {
+		TextView textView = (TextView)getView().findViewById( R.id.text_view );
+		textView.setText( stringId );
 	}
 }

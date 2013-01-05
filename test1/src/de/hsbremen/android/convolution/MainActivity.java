@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.TextureView;
 import android.view.TextureView.SurfaceTextureListener;
+import android.widget.TextView;
 
 import com.slidingmenu.lib.SlidingMenu;
 import com.slidingmenu.lib.app.SlidingActivity;
@@ -34,12 +35,24 @@ extends SlidingActivity {
 	private CameraProcessor.Listener findListener( int id ) {
 		return findFragment( id ).getListener();
 	}
+	
+	private void setName( int id, int stringId ) {
+		de.hsbremen.android.convolution.Fragment fragment = findFragment( id );
+		fragment.setName( stringId );
+	}
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView( R.layout.main_activity );
 		setBehindContentView( R.layout.menu );
+		
+		{
+			TextView textView = (TextView)findViewById( R.id.text_view );
+			textView.setText( R.string.convolution_camera_name );
+		}
+		setName( R.id.convolution_java  , R.string.convolution_fragment_name_java   );
+		setName( R.id.convolution_native, R.string.convolution_fragment_name_native );
 		
 		{
 			SlidingMenu sm = getSlidingMenu();
