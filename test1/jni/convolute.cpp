@@ -2,8 +2,6 @@
 #include <android/log.h>
 #include <ctime>
 #include <algorithm>
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
 #include <cstdint>
 #include <vector>
 #include <array>
