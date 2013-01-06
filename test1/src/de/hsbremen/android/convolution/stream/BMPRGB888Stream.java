@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.security.InvalidParameterException;
 import java.util.Arrays;
 
 import android.util.Log;
@@ -122,6 +123,9 @@ extends HeaderStream {
 	}
 		
 	private static InputStream createPaddedStream( InputStream in, final int width ) {
+		if( width < 0 )
+			throw new InvalidParameterException( "Bitmap width has to be positive");
+		
 		final int pad = getPad( width );
 		
 		if( pad <= 0 )
