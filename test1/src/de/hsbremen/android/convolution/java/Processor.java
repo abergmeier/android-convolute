@@ -230,8 +230,6 @@ extends de.hsbremen.android.convolution.Processor {
 			}
 		}
 
-		GLES20Texture.glTexImage2D( GLES20.GL_RGB, width / 4, height / 4, GLES20.GL_UNSIGNED_BYTE, _output );
-		GLUtils.throwOnError( "glEGLImageTargetTexture2DOES" );
 */
 	}
 		

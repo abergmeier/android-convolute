@@ -20,6 +20,10 @@ public abstract class Processor {
 		progress.reset();
 		process( frame, width, height, kernel, progress );
 		_output.rewind();
+/*
+		GLES20Texture.glTexImage2D( GLES20.GL_RGB, width / 4, height / 4, GLES20.GL_UNSIGNED_BYTE, _output );
+		GLUtils.throwOnError( "glEGLImageTargetTexture2DOES" );
+*/
 		renderListener.onRendered( _output, width, height );
 	}
 	
