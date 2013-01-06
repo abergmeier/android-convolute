@@ -18,7 +18,6 @@ package de.hsbremen.android.convolution.gl;
 import java.security.InvalidParameterException;
 
 import android.opengl.GLES20;
-import android.util.Log;
 
 public class ESShader {
 	//
