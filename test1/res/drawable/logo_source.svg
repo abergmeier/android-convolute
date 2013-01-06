@@ -10,15 +10,15 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="519.22516"
-   height="449.65158"
+   width="519.22998"
+   height="519.22998"
    id="svg2"
    version="1.1"
    inkscape:version="0.48.3.1 r9886"
    sodipodi:docname="logo_source.svg"
-   inkscape:export-filename="/home/andreas/Projects/uni_stuff/android/test1/res/drawable/logo.png"
-   inkscape:export-xdpi="160"
-   inkscape:export-ydpi="160">
+   inkscape:export-filename="/home/andreas/Projects/android-convolute/test1/res/drawable/logo.png"
+   inkscape:export-xdpi="96.02681"
+   inkscape:export-ydpi="96.02681">
   <defs
      id="defs4">
     <linearGradient
@@ -356,7 +356,7 @@
     <radialGradient
        inkscape:collect="always"
        xlink:href="#linearGradient4045-7"
-       id="radialGradient3885"
+       id="radialGradient3071"
        gradientUnits="userSpaceOnUse"
        cx="40.356598"
        cy="31.223734"
@@ -366,21 +366,21 @@
   </defs>
   <sodipodi:namedview
      id="base"
-     pagecolor="#ffffff"
+     pagecolor="#000000"
      bordercolor="#666666"
      borderopacity="1.0"
-     inkscape:pageopacity="0.0"
+     inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.7845442"
-     inkscape:cx="357.0268"
-     inkscape:cy="117.36626"
+     inkscape:zoom="0.73321172"
+     inkscape:cx="664.08432"
+     inkscape:cy="26.623178"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
      fit-margin-top="0"
      fit-margin-left="0"
      fit-margin-right="0"
-     fit-margin-bottom="0"
+     fit-margin-bottom="0.5"
      inkscape:snap-page="true"
      inkscape:window-width="1920"
      inkscape:window-height="1145"
@@ -403,9 +403,9 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-38.732965,-63.813074)">
+     transform="translate(-38.732965,5.7653631)">
     <path
-       transform="matrix(1.2493575,0,0,1.2493575,216.2979,355.69422)"
+       transform="matrix(1.2493575,0,0,1.2493575,216.28535,326.47457)"
        d="m 266.08761,-53.664284 -100.20188,173.554754 -200.403766,0 -100.201884,-173.554754 100.201884,-173.554746 200.403766,0 z"
        inkscape:randomized="0"
        inkscape:rounded="0"
@@ -432,7 +432,8 @@
        transform="matrix(0.8399276,0,0,0.8399276,-456.53122,46.204633)" />
     <g
        id="g3981"
-       mask="url(#mask4248)">
+       mask="url(#mask4248)"
+       transform="translate(0,-29.219648)">
       <path
          id="path3008"
          d="M 0,0 0,500.75 C 0,360.51558 255.77261,387.0139 321.625,298.25 387.47739,209.48609 384.1888,0 500.75,0 L 0,0 z"
@@ -450,7 +451,7 @@
            sodipodi:cy="31.223734"
            sodipodi:cx="40.356598"
            id="path4043"
-           style="opacity:0.79527558;fill:url(#radialGradient3885);fill-opacity:1;fill-rule:nonzero;stroke:none"
+           style="opacity:0.79527558;fill:url(#radialGradient3071);fill-opacity:1;fill-rule:nonzero;stroke:none"
            sodipodi:type="arc" />
         <use
            style="opacity:0.63385824"
@@ -543,21 +544,5 @@
            transform="translate(47.984558,38.2724)" />
       </g>
     </g>
-    <path
-       sodipodi:type="star"
-       style="fill:none;stroke:#000000;stroke-width:3.20164561;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
-       id="path4246"
-       sodipodi:sides="6"
-       sodipodi:cx="65.683846"
-       sodipodi:cy="-53.664284"
-       sodipodi:r1="200.40376"
-       sodipodi:r2="173.55475"
-       sodipodi:arg1="0"
-       sodipodi:arg2="0.52359878"
-       inkscape:flatsided="true"
-       inkscape:rounded="0"
-       inkscape:randomized="0"
-       d="m 266.08761,-53.664284 -100.20188,173.554754 -200.403766,0 -100.201884,-173.554754 100.201884,-173.554746 200.403766,0 z"
-       transform="matrix(1.2493575,0,0,1.2493575,216.2979,355.69422)" />
   </g>
 </svg>
