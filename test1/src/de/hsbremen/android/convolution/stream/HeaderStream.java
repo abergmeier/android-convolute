@@ -24,6 +24,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 
+//*
+// @author Andreas Bergmeier
+// FilterInputStream which wraps a ByteBuffer and an InputStream.
+// First streams the ByteBuffer and afterwards InputStream, so that
+// ByteBuffer works as a header to the InputStream.
+//*
 public class HeaderStream
 extends FilterInputStream {
 	private ByteBuffer _header;
