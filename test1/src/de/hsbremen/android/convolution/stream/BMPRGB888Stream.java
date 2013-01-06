@@ -102,10 +102,6 @@ extends HeaderStream {
 	// value is stored in a 2-byte array.
 	private static void intToWord( ByteBuffer buffer, short parValue ) {
 		buffer.putShort( parValue );
-	/*
-		buffer.put( (byte) ((parValue >> 0) & 0x00FF) );
-		buffer.put( (byte) ((parValue >> 8) & 0x00FF) );
-	 */
 	}
 
 	 /*
@@ -116,14 +112,6 @@ extends HeaderStream {
 	  */
 	private static void intToDWord ( ByteBuffer buffer, int parValue) {
 		buffer.putInt( parValue );
-/*
-		   byte retValue [] = new byte [4];
-		   retValue [0] = (byte) (parValue & 0x00FF);
-		   retValue [1] = (byte) ((parValue >> 8) & 0x000000FF);
-		   retValue [2] = (byte) ((parValue >> 16) & 0x000000FF);
-		   retValue [3] = (byte) ((parValue >> 24) & 0x000000FF);
-		   return (retValue);
-*/
 	}
 	
 	private static int getPad( int biWidth ) {
@@ -234,20 +222,4 @@ extends HeaderStream {
 		};
 		return stream;
 	}
-	 
-/*
-	private void writeBitmap ( ByteBuffer buffer ) {
-		
-		for( int row = biHeight; row > 0; row-- ) {
-			for(int col = 0; col<biWidth; col++) {
-				final int value = intBitmap [(row-1) * biWidth + col ];
-				
-				buffer.put( (byte)((value >>  0) & 0xFF) );
-				buffer.put( (byte)((value >>  8) & 0xFF) );
-				buffer.put( (byte)((value >> 16) & 0xFF) );
-			}
-			
-		}
-	}
-*/
 }
