@@ -18,7 +18,7 @@ extends de.hsbremen.android.convolution.Processor {
 	}
 */
 	private static int getByteOffset( int x, int y, int width ) {
-		return x * BYTES_PER_PIXEL + y * width;
+		return (x + y * width) * BYTES_PER_PIXEL;
 	}
 /*
 	private Integer getPixel( int x, int y, int width) {
