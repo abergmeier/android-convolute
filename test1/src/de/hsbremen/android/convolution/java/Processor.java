@@ -37,52 +37,51 @@ extends de.hsbremen.android.convolution.Processor {
 	public static void convertYUV420_NV21toRGB888(ByteBuffer data, int width, int height, ByteBuffer dest, ProgressListener progress) {
 		final int size = width * height;
 		final int offset = size;
-		int u, v, y1, y2, y3, y4;
 
 		//i percorre os Y and the final pixels
 		// k percorre os pixles U e V
-		for(int i=0, k=0; i < size; i += 2, k += 2) {
-			y1 = data.get(i  )&0xff;
-			y2 = data.get(i+1)&0xff;
-			y3 = data.get(width+i  )&0xff;
-			y4 = data.get(width+i+1)&0xff;
+		for( int i = 0, k = 0; i < size; i += 2, k += 2) {
+			{
+				final byte y1 = data.get(i  );
+				final byte y2 = data.get(i+1);
+				final byte y3 = data.get(width+i  );
+				final byte y4 = data.get(width+i+1);
+	
+				int u = data.get(offset+k  ) & 0xFF;
+				int v = data.get(offset+k+1) & 0xFF;
+				u = u - 128;
+				v = v - 128;
+	
+				convertYUVtoRGB( y1, u, v, dest, i           );
+				convertYUVtoRGB( y2, u, v, dest, i + 1       );
+				convertYUVtoRGB( y3, u, v, dest, width + i   );
+				convertYUVtoRGB( y4, u, v, dest, width+ i +1 );
+			}
 
-			u = data.get(offset+k  )&0xff;
-			v = data.get(offset+k+1)&0xff;
-			u = u-128;
-			v = v-128;
-
-			convertYUVtoRGB(y1, u, v, dest, i );
-			convertYUVtoRGB(y2, u, v, dest, i + 1);
-			convertYUVtoRGB(y3, u, v, dest, width + i);
-			convertYUVtoRGB(y4, u, v, dest, width+ i +1);
-
-			if (i!=0 && (i+2)%width==0) {
-				i+=width;
+			if( i != 0 && ( i + 2 ) % width == 0 ) {
+				i += width;
 				progress.incrementBy( width * 2 );
 			}
 		}
 	}
 
-	private static void convertYUVtoRGB(int y, int u, int v, ByteBuffer dest, int rgbIndex) {
-	    int r,g,b;
-	    
-	    r = y + (int)1.402f*v;
-	    g = y - (int)(0.344f*u +0.714f*v);
-	    b = y + (int)1.772f*u;
-	    r = r>255? 255 : r<0 ? 0 : r;
-	    g = g>255? 255 : g<0 ? 0 : g;
-	    b = b>255? 255 : b<0 ? 0 : b;
-	    final int index = rgbIndex * BYTES_PER_PIXEL;
-	    dest.put(index + 0, (byte)r   );
-	    dest.put(index + 1, (byte)g   );
-	    dest.put(index + 2, (byte)b   );
+	private static int toInt( byte b ) {
+		return b & 0xFF;
 	}
 	
-	private static byte convert( ByteBuffer frame, float ratio ) {
-		int newValue = (int)(frame.get() * ratio);
-		newValue = Math.max( Math.min( newValue, 0xFF ), 0 );
-		return (byte)newValue;
+	private static byte toByte( int value ) {
+		return (byte)Math.max( Math.min(value, 0xFF), 0 );
+	}
+	
+	private static void convertYUVtoRGB( byte y, int u, int v, ByteBuffer dest, int rgbIndex ) {
+		final int r = toInt(y) + (int)(1.402f * v);
+		final int g = toInt(y) - (int)(0.344f * u + 0.714f * v);
+		final int b = toInt(y) + (int)(1.772f * u);
+
+		final int index = rgbIndex * BYTES_PER_PIXEL;
+		dest.put(index + 0, toByte(r) );
+		dest.put(index + 1, toByte(g) );
+		dest.put(index + 2, toByte(b) );
 	}
 
 	@Override
