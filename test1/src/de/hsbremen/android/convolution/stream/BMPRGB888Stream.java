@@ -47,7 +47,8 @@ extends HeaderStream {
 	                           biBitCount  = 24;
 	
 	public BMPRGB888Stream( InputStream rgbStream, int width, int height ) {
-		super( createPaddedStream( rgbStream, width ), createHeader( width, height ) );
+		// We have to add minus to height, because by default BMPs are saved from bottom to top
+		super( createPaddedStream( rgbStream, width ), createHeader( width, -height ) );
 	}
 	
 	private static ByteBuffer createHeader( final int width, final int height ) {
