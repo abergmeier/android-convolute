@@ -4,7 +4,6 @@ import java.nio.ByteBuffer;
 
 import de.hsbremen.android.convolution.NativeBuffers;
 import de.hsbremen.android.convolution.ProgressListener;
-import de.hsbremen.android.convolution.RenderListener;
 
 public class Processor
 extends de.hsbremen.android.convolution.Processor {
@@ -12,39 +11,17 @@ extends de.hsbremen.android.convolution.Processor {
 	
 	public Processor() {
 	}
-/*
-	private static int getOffset( int x, int y, int width ) {
-		return x + y * width;
-	}
-*/
+
 	private static int getByteOffset( int x, int y, int width ) {
 		return (x + y * width) * BYTES_PER_PIXEL;
 	}
-/*
-	private Integer getPixel( int x, int y, int width) {
-		final int offset = getByteOffset( x, y, width );
-		//return _input.array()[_input.arrayOffset() + offset];
-		return _input[offset];
-	}
-*/
+
 	private void setPixel( ByteBuffer pixels, byte r, byte g, byte b ) {
 		pixels.put( r );
 		pixels.put( g );
 		pixels.put( b );
 	}
-	
-	private void setPixel( ByteBuffer pixels, int x, int y, int width, byte r, byte g, byte b ) {
-		final int byteOffset = getByteOffset( x, y, width );
-		
-		pixels.put(byteOffset + 0, r);
-		pixels.put(byteOffset + 1, g);
-		pixels.put(byteOffset + 1, b);
-	}
-	
-	void onDrawFrame() {
-		
-	}
-	
+
 	private static int clipToByte( int color ) {
 		return Math.max(Math.min(color, 255), 0);
 	}
@@ -56,71 +33,7 @@ extends de.hsbremen.android.convolution.Processor {
 	private byte red  ( int byteOffset ) { return getComponent( byteOffset, 0 ); }
 	private byte green( int byteOffset ) { return getComponent( byteOffset, 1 ); }
 	private byte blue ( int byteOffset ) { return getComponent( byteOffset, 2 ); }
-/*
-	private int getKernel( IntBuffer buffer, int index ) {
-		return buffer.get(index);
-	}
-	
-	private static void convertNV21toRGB( ByteBuffer frame, int width, int height, ByteBuffer dest ) {
-		final int size = width * height;
-		final int offset = size;
-	 
-		// i along Y and the final pixels
-		// k along pixels U and V
-		for( int i = 0, k = 0; i < size; i += width ) {
-			for( ; i == 0 || (i + 2) % width != 0; i += 2, k += 2 ) {
-				final int y1 = frame.get(i + 0)         & 0xFF;
-				final int y2 = frame.get(i + 1)         & 0xFF;
-				final int y3 = frame.get(i + width + 0) & 0xFF;
-				final int y4 = frame.get(i + width + 1) & 0xFF;
-		
-				int u = frame.get(offset + k + 0) & 0xFF;
-				int v = frame.get(offset + k + 1) & 0xFF;
-				u = u-128;
-				v = v-128;
-		
-				convertYUVtoRGB( y1, u, v, dest, i + 0 ); Log.v("TEST", y1 + " " + u + " " + v);
-				convertYUVtoRGB( y2, u, v, dest, i + 1 );
-				convertYUVtoRGB( y3, u, v, dest, i + width + 0);
-				convertYUVtoRGB( y4, u, v, dest, i + width + 1);
-			}
-		}
-	}
-	
-	private static byte clampToByte( int value ) {
-		return (byte)Math.max( Math.min( value, 0xFF), 0 );
-	}
-	
-	private static void con( int y, int u, int v, ByteBuffer dest, int index ) {
-		int r,g,b;
 
-	    r = y + (int)1.402f*v;
-	    g = y - (int)(0.344f*u +0.714f*v);
-	    b = y + (int)1.772f*u;
-	    r = r>255? 255 : r<0 ? 0 : r;
-	    g = g>255? 255 : g<0 ? 0 : g;
-	    b = b>255? 255 : b<0 ? 0 : b;
-	    dest.put( index + 0, (byte)(b & 0xFF) );
-	    dest.put( index + 1, (byte)(g & 0xFF) );
-	    dest.put( index + 2, (byte)(r & 0xFF) );
-	}
-	
-	private static void convertYUVtoRGB( int y, int u, int v, ByteBuffer dest, int index ) {
-		int b = (int)(1.164 * ( y - 16)                   + 2.018 * (u));
-
-		int g = (int)(1.164 * ( y - 16) - 0.813 * ( v ) - 0.391 * (u));
-
-		int r = (int)(1.164 * ( y - 16 ) + 1.596 * ( v ));
-				
-		//final int r = y + (int)(1.402f * v             );
-		//final int g = y - (int)(0.344f * u + 0.714f * v);
-		//final int b = y + (int)(1.772f * u             );
-		
-		dest.put( index + 0, clampToByte(r) );
-		dest.put( index + 1, clampToByte(g) );
-		dest.put( index + 2, clampToByte(b) );
-	}
-*/
 	public static void convertYUV420_NV21toRGB888(ByteBuffer data, int width, int height, ByteBuffer dest, ProgressListener progress) {
 		final int size = width * height;
 		final int offset = size;
@@ -174,13 +87,6 @@ extends de.hsbremen.android.convolution.Processor {
 
 	@Override
 	public void process( ByteBuffer frame, int width, int height, int[] kernel, ProgressListener progress ) {
-/*
-		if( _input == null || _input.capacity() < frame.array().length )
-			_input = NativeBuffers.allocateLong( width * height ); 
-		
-		if( _output == null || _output.capacity() < frame.array().length )
-			_output = NativeBuffers.allocateLong( width * height );
-*/
 		final int pixels = width * height;
 		final int size = pixels * BYTES_PER_PIXEL;
 		
@@ -200,37 +106,6 @@ extends de.hsbremen.android.convolution.Processor {
 		getOutputBuffer().rewind();
 		getOutputBuffer().put( _input );
 		//convolute( width, height, kernel, progress );
-/*
-		{
-			Bitmap bitmap = Bitmap.createBitmap( width, height, Config.ARGB_8888 );
-			for( int x = 0; x < width; x++ ) {
-				for( int y = 0; y < height; y++ ) {
-					int color = 0xFF << 24
-					          | (_output.get() & 0xFF) << 16
-					          | (_output.get() & 0xFF) <<  8
-					          | (_output.get() & 0xFF) <<  0;
-					bitmap.setPixel(x, y, color);
-				}
-			}
-			
-			FileOutputStream out;
-			try {
-				out = new FileOutputStream( _cacheDir + "/picture.png" );
-			} catch (FileNotFoundException e) {
-				throw new RuntimeException( e );
-			}
-			bitmap.compress( Bitmap.CompressFormat.PNG, 90, out );
-			try {
-				out.flush();
-			} catch (IOException e1) {
-			}
-			try {
-				out.close();
-			} catch (IOException e) {
-			}
-		}
-
-*/
 	}
 		
 	private void convolute( int width, int height, int[] kernel, ProgressListener progress ) {
