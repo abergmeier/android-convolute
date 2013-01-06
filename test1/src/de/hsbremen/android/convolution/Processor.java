@@ -44,6 +44,7 @@ public abstract class Processor {
 		}
 		
 		_output.limit( size );
+		_output.rewind();
 	}
 	
 	protected final ByteBuffer getOutputBuffer() {
