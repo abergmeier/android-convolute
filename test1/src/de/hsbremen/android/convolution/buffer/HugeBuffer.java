@@ -66,12 +66,6 @@ public class HugeBuffer {
 	
 	public HugeBuffer( File cacheDir, int byteLength ) {
 		try {
-			//_native = new NativeVariant( byteLength );
-			_file = null;
-		} catch( OutOfMemoryError memory ) {
-		}
-		
-		try {
 			_file = new FileVariant( cacheDir, byteLength );
 		} catch( IOException e ) {
 			throw new RuntimeException( e );
