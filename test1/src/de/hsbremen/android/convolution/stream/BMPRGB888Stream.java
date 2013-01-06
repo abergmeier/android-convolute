@@ -36,7 +36,6 @@ extends HeaderStream {
 	                         bfOffBits = BITMAPFILEHEADER_SIZE + BITMAPINFOHEADER_SIZE,
 	                         biSize = BITMAPINFOHEADER_SIZE,
 	                         biCompression   = 0,
-	                         biSizeImage     = 0,
 	                         biXPelsPerMeter = 0x0,
 	                         biYPelsPerMeter = 0x0,
 	                         biClrUsed       = 0,
