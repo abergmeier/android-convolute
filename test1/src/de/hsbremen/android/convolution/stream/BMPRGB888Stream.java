@@ -29,6 +29,13 @@ import java.util.Arrays;
 
 import android.util.Log;
 
+
+//*
+// @author Andreas Bergmeier
+// Class for turning an ordinary byte stream containing RGB888
+// data into a byte stream containing a BMP (Windows 3.0 format).
+// Implementation based upon ij.plugin.BMP_Writer.
+//*
 public class BMPRGB888Stream
 extends HeaderStream {
 	private static final byte[] BMP_MAGIC = { 0x42, 0x4D };
@@ -47,6 +54,13 @@ extends HeaderStream {
 	                           biPlanes    = 1,
 	                           biBitCount  = 24;
 	
+	//*
+	// By default wraps the file stream from top to bottom. To use native BMP format (bottom to top)
+	// submit a negated height value.
+	// @param rgbStream An InputStream, containing RGB888 data
+	// @param width Width of RGB888 image. Throws InvalidParameterException when width is negative.
+	// @param height Height of RGB888 image.
+	//*
 	public BMPRGB888Stream( InputStream rgbStream, int width, int height ) {
 		// We have to add minus to height, because by default BMPs are saved from bottom to top
 		super( createPaddedStream( rgbStream, width ), createHeader( width, -height ) );
