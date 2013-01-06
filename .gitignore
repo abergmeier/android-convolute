@@ -1,10 +1,14 @@
-# Eclipse files
-.metadata
+# Linux backup files
+*~
 
 # built application files
 *.apk
 *.ap_
 *.jar
+*.so
+*.o
+*.a
+*.d
 
 # files for the dex VM
 *.dex
@@ -22,3 +26,4 @@ local.properties
 # Eclipse project files
 .classpath
 .project
+.metadata
