@@ -24,8 +24,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 
-import android.util.Log;
-
 public class HeaderStream
 extends FilterInputStream {
 	private ByteBuffer _header;
@@ -47,10 +45,6 @@ extends FilterInputStream {
 			return super.read();
 	}
 	
-	private void LOGV( String message ) {
-		Log.v( getClass().getSimpleName(), message );
-	}
-	
 	@Override
 	public int read( byte[] buffer, int offset, final int origCount ) throws IOException {
 		int count = origCount;
@@ -60,7 +54,6 @@ extends FilterInputStream {
 			header().get( buffer, offset, readHeaderCount );
 			count -= readHeaderCount;
 			offset += readHeaderCount;
-			LOGV( "Read from hed: " + readHeaderCount + " of " + origCount + " " + super.getClass().getSimpleName());
 		}
 		
 		return (origCount - count) + super.read( buffer, offset , count );
