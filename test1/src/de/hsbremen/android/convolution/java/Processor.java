@@ -2,8 +2,8 @@ package de.hsbremen.android.convolution.java;
 
 import java.nio.ByteBuffer;
 
-import de.hsbremen.android.convolution.NativeBuffers;
 import de.hsbremen.android.convolution.ProgressListener;
+import de.hsbremen.android.convolution.buffer.NativeBuffers;
 
 public class Processor
 extends de.hsbremen.android.convolution.Processor {

@@ -2,6 +2,8 @@ package de.hsbremen.android.convolution;
 
 import java.nio.ByteBuffer;
 
+import de.hsbremen.android.convolution.buffer.NativeBuffers;
+
 import android.util.Log;
 
 public abstract class Processor {

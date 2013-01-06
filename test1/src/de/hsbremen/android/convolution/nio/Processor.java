@@ -3,8 +3,8 @@ package de.hsbremen.android.convolution.nio;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
-import de.hsbremen.android.convolution.NativeBuffers;
 import de.hsbremen.android.convolution.ProgressListener;
+import de.hsbremen.android.convolution.buffer.NativeBuffers;
 
 public class Processor
 extends de.hsbremen.android.convolution.Processor {

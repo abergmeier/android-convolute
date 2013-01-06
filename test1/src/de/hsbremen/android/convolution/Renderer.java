@@ -8,6 +8,8 @@ import java.util.concurrent.Exchanger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import de.hsbremen.android.convolution.buffer.NativeBuffers;
+
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;

@@ -7,11 +7,11 @@ import android.opengl.GLES20;
 import android.util.Log;
 import android.view.TextureView.SurfaceTextureListener;
 import de.hsbremen.android.convolution.CameraProcessor;
-import de.hsbremen.android.convolution.NativeBuffers;
 import de.hsbremen.android.convolution.Processor;
 import de.hsbremen.android.convolution.ProgressListener;
 import de.hsbremen.android.convolution.RenderListener;
 import de.hsbremen.android.convolution.Renderer;
+import de.hsbremen.android.convolution.buffer.NativeBuffers;
 
 public abstract class GLRenderer<PROC extends Processor>
 extends Renderer<PROC>
