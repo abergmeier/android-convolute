@@ -22,49 +22,84 @@ namespace {
 	typedef std::vector<color_type> buffer_type;
 
 	struct SHIFT {
-		static const short RED   = 0;
-		static const short GREEN = 1;
-		static const short BLUE  = 2;
+		static const std::uint8_t RED   = 0;
+		static const std::uint8_t GREEN = 1;
+		static const std::uint8_t BLUE  = 2;
 	};
 
 	constexpr std::size_t offset( std::size_t x, std::size_t y, std::size_t width, std::uint8_t bytesPerPixel ) noexcept {
 		return (y * width + x) * bytesPerPixel;
 	}
 
-	template <short SHIFT>
+	template <std::uint8_t SHIFT>
 	color_type channel_pixel( const buffer_type& input,
 	                          std::size_t x, std::size_t y,
 	                          std::size_t width, std::uint8_t bytesPerPixel ) noexcept {
 		return input[offset(x, y, width, bytesPerPixel) + SHIFT];
 	}
 
-	template <short SHIFT>
-	void colorFunc( const buffer_type& input, size_t width, size_t height, std::uint8_t bytesPerPixel, int const * kernel, std::uint8_t* output ) noexcept {
+	template <typename T>
+	inline T clamp(T value, T min, T max) {
+		return std::min(std::max(value, min), max);
+	}
+
+	template <typename T>
+	inline std::uint8_t clamp_u8( T value ) {
+		return clamp( value, (T)0, (T)255 );
+	}
+
+	template <std::uint8_t SHIFT>
+	void processKern( unsigned int& value,
+	                  const buffer_type& input, int kern,
+	                  std::size_t x, std::size_t y,
+	                  std::size_t width, std::uint8_t bytesPerPixel ) {
+		// Save old value to enable under/overflow detection
+		auto old = value;
+		value += channel_pixel<SHIFT>( input, x, y, width, bytesPerPixel ) * kern;
+
+		// Handle underflow
+		if( kern < 0 && value > old )
+			value = std::numeric_limits<int>::max();
+
+		// Handle overflow
+		if( kern > 0 && value < old )
+			value = std::numeric_limits<int>::min();
+	}
+
+	void convolute( const buffer_type& input,
+	                size_t width, size_t height, std::uint8_t bytesPerPixel,
+	                int const * kernel, std::uint8_t* output, std::function<void(jint)>& increaseProgress ) noexcept {
 
 		for( size_t y = 0; y < height; ++y ) {
 			for( size_t x = 0; x < width; ++x ) {
 
 				// This is int value for performance
-				unsigned int value;
-				for( std::int8_t dx = -2; dx != 3; ++dx ) {
-					for( std::int8_t dy = -2; dy != 3; ++dy ) {
-						const auto kern = kernel[(2 + dx) + (2 + dy) * 5];
-						// Save old value to enable under/overflow detection
-						auto old = value;
-						value += channel_pixel<SHIFT>( input, x + dx, y + dy, width, bytesPerPixel ) * kern;
+				unsigned int r = 0,
+				             g = 0,
+				             b = 0;
+				for( std::int8_t dx = -1; dx != 2; ++dx ) {
+					for( std::int8_t dy = -1; dy != 2; ++dy ) {
+						const auto local_x = x + dx;
+						const auto local_y = y + dy;
 
-						// Handle underflow
-						if( kern < 0 && value > old )
-							value = std::numeric_limits<int>::max();
+						if( local_x < 0 || local_x >= width || local_y < 0 || local_y >= height )
+							continue;
 
-						// Handle overflow
-						if( kern > 0 && value < old )
-							value = std::numeric_limits<int>::min();
+						const auto kern = kernel[(1 + dx) + (1 + dy) * 3];
+						processKern<SHIFT::RED  >( r, input, kern, local_x, local_y, width, bytesPerPixel );
+						processKern<SHIFT::GREEN>( g, input, kern, local_x, local_y, width, bytesPerPixel );
+						processKern<SHIFT::BLUE >( b, input, kern, local_x, local_y, width, bytesPerPixel );
 					}
 				}
 
-				output[offset(x, y, width, bytesPerPixel) + SHIFT] = value;
+				*output = clamp_u8( r );
+				++output;
+				*output = clamp_u8( g );
+				++output;
+				*output = clamp_u8( b );
+				++output;
 			}
+			increaseProgress( width );
 		}
 	/*
 			for( size_t y = 0; y < height; ++y ) {
@@ -89,23 +124,13 @@ namespace {
 			}
 			*/
 	}
-
+/*
 	void convolute( const buffer_type&  buffer, std::size_t width, std::size_t height, std::uint8_t bytesPerPixel, int32_t const* kernel, std::uint8_t* output ) noexcept {
 		colorFunc<SHIFT::RED  >( buffer, width, height, bytesPerPixel, kernel, output );
 		colorFunc<SHIFT::GREEN>( buffer, width, height, bytesPerPixel, kernel, output );
 		colorFunc<SHIFT::BLUE >( buffer, width, height, bytesPerPixel, kernel, output );
 	}
-
-	template <typename T>
-	inline T clamp(T value, T min, T max) {
-		return std::min(std::max(value, min), max);
-	}
-
-	template <typename T>
-	inline T clamp_u8( T value ) {
-		return clamp( value, 0, 255 );
-	}
-
+*/
 	inline void convertYUVtoRGB( std::uint8_t y, std::int8_t u, std::int8_t v, std::uint8_t bytesPerPixel, buffer_type& rgb, std::size_t index ) {
 		const auto r = y + static_cast<std::int16_t>(1.402f * v);
 		const auto g = y - static_cast<std::int16_t>(0.344f * u + 0.714f * v);
@@ -198,18 +223,18 @@ Java_de_hsbremen_android_convolution_nio_Processor_nativeProcess( JNIEnv * pEnv,
 			pEnv->CallVoidMethod( progress, methodId, increase );
 		};
 		convertYUV420_NV21toRGB888( frame, width, height, bytesPerPixel, BUFFER, increaseProgress );
-	}
 
-	{
-		auto destSize = pEnv->GetDirectBufferCapacity( outputBuffer );
-		if( destSize < BUFFER.size() ) {
-			LOGE( "Cannot copy %u to output of size %d.", BUFFER.size(), destSize );
-			return;
+		{
+			auto destSize = pEnv->GetDirectBufferCapacity( outputBuffer );
+			if( destSize < BUFFER.size() ) {
+				LOGE( "Cannot copy %u to output of size %d.", BUFFER.size(), destSize );
+				return;
+			}
 		}
-	}
 
-	std::copy( BUFFER.begin(), BUFFER.end(), output );
-	//convolute( BUFFER, width, height, kernel, bytePerPixel, output );
+		//std::copy( BUFFER.begin(), BUFFER.end(), output );
+		convolute( BUFFER, width, height, bytesPerPixel, kernel, output, increaseProgress );
+	}
 }
 
 /*

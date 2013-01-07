@@ -102,13 +102,16 @@ extends de.hsbremen.android.convolution.Processor {
 		convertYUV420_NV21toRGB888( frame, width, height, _input, progress );
 		
 		_input.rewind();
+		/*
 		getOutputBuffer().rewind();
 		getOutputBuffer().put( _input );
-		//convolute( width, height, kernel, progress );
+		*/
+		convolute( width, height, kernel, progress );
 	}
 		
 	private void convolute( int width, int height, int[] kernel, ProgressListener progress ) {
 		
+		ByteBuffer output = getOutputBuffer();
 		for( int y = 0; y < height; ++y ) {
 			for (int x = 0; x < width; ++x ) {
 /*
@@ -120,27 +123,24 @@ extends de.hsbremen.android.convolution.Processor {
 				    g = 0,
 				    b = 0;
 
-				for( int dx = -1; dx != 2; ++dx ) {
-					for( int dy = -1; dy != 2; ++dy ) {
-						final int kern = kernel[(1 + dx) + (1 + dy) * 3];
+				for( int dx = -1; dx < 1; ++dx ) {
+					for( int dy = -1; dy < 1; ++dy ) {
 						final int local_x = x + dx;
 						final int local_y = y + dy;
 
 						if( local_x < 0 || local_x >= width || local_y < 0 || local_y >= height )
 							continue;
 						
+						final int kern = kernel[(1 + dx) + (1 + dy) * 3];
 						final int byteOffset = getByteOffset( local_x, local_y, width );
+						
 						r += red  ( byteOffset ) * kern;
 						g += green( byteOffset ) * kern;
 						b += blue ( byteOffset ) * kern;
-						r = clipToByte(r);
-						g = clipToByte(g);
-						b = clipToByte(b);
 					}
 				}
-
-				setPixel( getOutputBuffer(), (byte)r, (byte)g, (byte)b );
-				//setPixel( _output, x, y, width, (byte)r, (byte)g, (byte)b );
+				
+				setPixel( output, toByte(r), toByte(g), toByte(b) );
 			}
 			progress.incrementBy( width );
 			
