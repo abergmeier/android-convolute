@@ -66,15 +66,15 @@ public abstract class Renderer<T extends Processor> {
 		
 		@Override
 		public void onPreviewFrameProcess( final int width, final int height ) {
-			final int[]      kernel = getQueued( _kernels );
-			final ByteBuffer buffer = exchangeQueued( _buffers, null );
-			
-			if( buffer == null )
-				return; // Nothing to process
-
 			executeInRenderThread( new Runnable() {
 				@Override
 				public void run() {
+					final int[]      kernel = getQueued( _kernels );
+					final ByteBuffer buffer = exchangeQueued( _buffers, null );
+					
+					if( buffer == null )
+						return; // Nothing to process
+					
 					getProcessor().convolute( buffer, width, height, kernel, _progress, _renderListener );
 					setUnused( _buffers, buffer );
 					setUnused( _kernels, kernel );
