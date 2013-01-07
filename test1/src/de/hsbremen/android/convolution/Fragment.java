@@ -46,7 +46,6 @@ extends android.app.Fragment {
 		final RenderListener   renderListener   = new RenderListener() {
 			private final ImageView             _imageView = (ImageView)view.findViewById( R.id.image_view );
 			private final ByteBufferInputStream _stream = new ByteBufferInputStream();
-			private       Bitmap _bitmap = null;
 			
 			@Override
 			public void onRendered( ByteBuffer output, int width, int height ) {
