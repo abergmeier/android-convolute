@@ -27,8 +27,6 @@ import java.nio.ByteOrder;
 import java.security.InvalidParameterException;
 import java.util.Arrays;
 
-import android.util.Log;
-
 
 //*
 // @author Andreas Bergmeier
@@ -168,10 +166,6 @@ extends HeaderStream {
 				return result;
 			}
 			
-			private void LOGV( String message ) {
-				Log.v( getClass().getSimpleName(), message );
-			}
-			
 			@Override
 			public int read( byte[] buffer, final int origOffset, final int origCount )
 			throws IOException {
@@ -188,7 +182,6 @@ extends HeaderStream {
 						padding.get( buffer, offset, readCount );
 						offset += readCount;
 						count -= readCount;
-						LOGV( "Read from pad: " + readCount + " of " + origCount );
 					} else {
 						padding.rewind();
 						_xIndex = 0;

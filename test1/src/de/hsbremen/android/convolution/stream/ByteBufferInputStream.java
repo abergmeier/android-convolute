@@ -23,8 +23,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 
-import android.util.Log;
-
 public class ByteBufferInputStream
 extends InputStream {
 
@@ -41,10 +39,6 @@ extends InputStream {
 
 		return _buf.get();
 	}
-	
-	private void LOGV( String message ) {
-		Log.v( getClass().getSimpleName(), message );
-	}
 
 	@Override
 	public synchronized int read( byte[] bytes, int off, final int origLen )
@@ -56,8 +50,6 @@ extends InputStream {
 		int len = origLen;
 		len = Math.min( len, remaining );
 		_buf.get( bytes, off, len );
-		if( len != origLen )
-			LOGV( "read from buf: " + len + " of " + origLen );
 		return len;
 	}
 	
