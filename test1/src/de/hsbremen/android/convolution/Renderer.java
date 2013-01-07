@@ -66,9 +66,15 @@ public abstract class Renderer<T extends Processor> {
 		
 		@Override
 		public void onPreviewFrameProcess( final int width, final int height ) {
+			final long creationTime = System.currentTimeMillis();
 			executeInRenderThread( new Runnable() {
 				@Override
 				public void run() {
+					final long currentTime = System.currentTimeMillis();
+					final long deltaMs = currentTime - 1000 - creationTime;
+					if( deltaMs > 0 )
+						return; //Timeout of 1 second
+						
 					final int[]      kernel = getQueued( _kernels );
 					final ByteBuffer buffer = exchangeQueued( _buffers, null );
 					
