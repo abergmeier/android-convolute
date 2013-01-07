@@ -22,8 +22,8 @@ extends de.hsbremen.android.convolution.Processor {
 		pixels.put( b );
 	}
 
-	private static int clipToByte( int color ) {
-		return Math.max(Math.min(color, 255), 0);
+	private static int clipToByte( int value ) {
+		return Math.max( Math.min(value, 0xFF), 0 );
 	}
 	
 	private byte getComponent( int byteOffset, int componentOffset ) {
@@ -70,7 +70,7 @@ extends de.hsbremen.android.convolution.Processor {
 	}
 	
 	private static byte toByte( int value ) {
-		return (byte)Math.max( Math.min(value, 0xFF), 0 );
+		return (byte)clipToByte( value );
 	}
 	
 	private static void convertYUVtoRGB( byte y, int u, int v, ByteBuffer dest, int rgbIndex ) {
