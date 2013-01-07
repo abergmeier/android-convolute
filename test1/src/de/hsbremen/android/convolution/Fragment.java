@@ -171,6 +171,9 @@ extends android.app.Fragment {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch( item.getItemId() ) {
+		case R.id.convolute_reset:
+			getListener().onKernelChange( Kernel.NEUTRAL.array );
+			return true;
 		case R.id.convolute_blur:
 			getListener().onKernelChange( Kernel.BLUR.array );
 			return true;
