@@ -177,7 +177,7 @@ public abstract class Renderer<T extends Processor> {
 		return _processor;
 	}
 	
-	protected void executeInRenderThread( Runnable runnable ) {
+	private void executeInRenderThread( Runnable runnable ) {
 		_renderHandler.post( runnable );
 	}
 	
