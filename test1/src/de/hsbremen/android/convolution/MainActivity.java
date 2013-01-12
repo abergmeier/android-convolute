@@ -44,7 +44,7 @@ extends SlidingActivity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView( R.layout.main_activity );
+		setContentView( R.layout.convolution_layout );
 		setBehindContentView( R.layout.menu );
 		
 		{

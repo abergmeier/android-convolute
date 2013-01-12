@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:id="@+id/convolution_linear_layout"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:orientation="horizontal" >
+
+	<include
+		layout="@layout/camera_layout"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_weight="0.4"/>
+
+	<fragment
+	    android:id="@+id/convolution_java"
+	    android:name="de.hsbremen.android.convolution.java.Fragment"
+	    android:layout_width="match_parent"
+	    android:layout_height="match_parent"
+	    android:layout_weight="0.3"
+	    tools:layout="@layout/gl_view" />
+
+	<fragment
+	    android:id="@+id/convolution_native"
+	    android:name="de.hsbremen.android.convolution.nio.Fragment"
+	    android:layout_width="match_parent"
+	    android:layout_height="match_parent"
+	    android:layout_weight="0.3"
+	    tools:layout="@layout/gl_view" />
+
+</LinearLayout>
