@@ -27,7 +27,8 @@ import de.hsbremen.android.convolution.stream.ByteBufferInputStream;
 
 public abstract class ConvolutionFragment
 extends NamedFragment {
-	private   Renderer<?>              _renderer = null;
+	private Renderer<?>      _renderer         = null;
+	private ProgressListener _progressListener = null;
 	
 	public ConvolutionFragment() {
 		super( R.string.title_convolution );
@@ -111,9 +112,9 @@ extends NamedFragment {
 				return inSampleSize;
 			}
 		};
-		final ProgressListener progressListener = new ProgressDelegator( (ProgressBar)view.findViewById( R.id.progress_bar ) );
+		_progressListener = new ProgressDelegator( (ProgressBar)view.findViewById( R.id.progress_bar ) );
 		
-		_renderer = createRenderer( progressListener, renderListener );
+		_renderer = createRenderer( _progressListener, renderListener );
 		_renderer.listener.onKernelChange( Kernel.NEUTRAL.array );
 		
 /*
@@ -137,6 +138,8 @@ extends NamedFragment {
 			textureView.setSurfaceTextureListener( null );
 		}
 */
+		_progressListener.close();
+		_progressListener = null;
 		
 		_renderer.close();
 		_renderer = null;

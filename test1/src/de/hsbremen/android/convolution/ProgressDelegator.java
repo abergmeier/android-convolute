@@ -4,7 +4,7 @@ import android.widget.ProgressBar;
 
 public class ProgressDelegator
 implements ProgressListener {
-	private final ProgressBar _progressBar;
+	private ProgressBar _progressBar;
 	
 	public ProgressDelegator( ProgressBar progressBar ) {
 		_progressBar = progressBar;
@@ -12,22 +12,31 @@ implements ProgressListener {
 
 	@Override
 	public void incrementBy(int i) {
-		_progressBar.incrementProgressBy( i );
+		if( _progressBar != null )
+			_progressBar.incrementProgressBy( i );
 	}
 
 	@Override
 	public int getMax() {
-		return _progressBar.getMax();
+		if( _progressBar != null )
+			return _progressBar.getMax();
+		return 0;
 	}
 
 	@Override
 	public void setMax(int max ) {
-		_progressBar.setMax( max );
+		if( _progressBar != null )
+			_progressBar.setMax( max );
 	}
 
 	@Override
 	public void reset() {
-		_progressBar.setProgress( 0 );
+		if( _progressBar != null )
+			_progressBar.setProgress( 0 );
 	}
-
+	
+	@Override
+	public void close() {
+		_progressBar = null;
+	}
 }

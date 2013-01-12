@@ -7,4 +7,5 @@ public interface ProgressListener {
 	void setMax(int i);
 
 	void reset();
+	void close();
 }
