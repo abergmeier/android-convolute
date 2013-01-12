@@ -4,7 +4,7 @@ import de.hsbremen.android.convolution.ProgressListener;
 import de.hsbremen.android.convolution.RenderListener;
 
 public class Fragment
-extends de.hsbremen.android.convolution.Fragment {
+extends de.hsbremen.android.convolution.ConvolutionFragment {
 	
 	@Override
 	protected Renderer createRenderer( ProgressListener progressListener,

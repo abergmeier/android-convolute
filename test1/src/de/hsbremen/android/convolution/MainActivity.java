@@ -28,8 +28,8 @@ extends SlidingActivity {
 		Log.v(LOG_TAG, msg);
 	}
 	
-	de.hsbremen.android.convolution.Fragment findFragment( int id ) {
-		return (de.hsbremen.android.convolution.Fragment)getFragmentManager().findFragmentById( id );
+	de.hsbremen.android.convolution.ConvolutionFragment findFragment( int id ) {
+		return (de.hsbremen.android.convolution.ConvolutionFragment)getFragmentManager().findFragmentById( id );
 	}
 	
 	private CameraProcessor.Listener findListener( int id ) {
@@ -37,7 +37,7 @@ extends SlidingActivity {
 	}
 	
 	private void setName( int id, int stringId ) {
-		de.hsbremen.android.convolution.Fragment fragment = findFragment( id );
+		de.hsbremen.android.convolution.ConvolutionFragment fragment = findFragment( id );
 		fragment.setName( stringId );
 	}
 

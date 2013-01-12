@@ -25,9 +25,13 @@ import android.widget.TextView;
 import de.hsbremen.android.convolution.stream.BMPRGB888Stream;
 import de.hsbremen.android.convolution.stream.ByteBufferInputStream;
 
-public abstract class Fragment
-extends android.app.Fragment {
+public abstract class ConvolutionFragment
+extends NamedFragment {
 	private   Renderer<?>              _renderer = null;
+	
+	public ConvolutionFragment() {
+		super( R.string.title_convolution );
+	}
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -137,12 +141,6 @@ extends android.app.Fragment {
 		_renderer.close();
 		_renderer = null;
 	}
-
-	@Override
-	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-		super.onCreateOptionsMenu(menu, inflater);
-		inflater.inflate( R.menu.convolute_menu, menu );
-	}
 	
 	private static enum Kernel {
 		NEUTRAL(
@@ -168,21 +166,40 @@ extends android.app.Fragment {
 		}
 	}
 	
+	private MenuItem findOrCreateMenuAction( Menu menu, int resId, int titleRes, int iconRes ) {
+		MenuItem menuItem = menu.findItem( resId );
+		
+		if( menuItem != null )
+			return menuItem;
+		
+		menuItem = menu.add( Menu.NONE, resId, Menu.NONE, titleRes );
+		menuItem.setIcon( iconRes );
+		menuItem.setShowAsActionFlags( MenuItem.SHOW_AS_ACTION_ALWAYS );
+		return menuItem;
+	}
+	
 	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
+	public void onCreateOptionsMenu( Menu menu, MenuInflater inflater ) {
+		super.onCreateOptionsMenu(menu, inflater);
+		findOrCreateMenuAction( menu, R.id.convolute_reset, R.string.option_item_convolute_reset, R.drawable.menu_reset );
+		findOrCreateMenuAction( menu, R.id.convolute_blur , R.string.option_item_convolute_blur , R.drawable.menu_blur  );
+		findOrCreateMenuAction( menu, R.id.convolute_edge , R.string.option_item_convolute_edge , R.drawable.menu_edge  );
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected( MenuItem item ) {
 		switch( item.getItemId() ) {
 		case R.id.convolute_reset:
 			getListener().onKernelChange( Kernel.NEUTRAL.array );
-			return true;
+			break;
 		case R.id.convolute_blur:
 			getListener().onKernelChange( Kernel.BLUR.array );
-			return true;
+			break;
 		case R.id.convolute_edge:
 			getListener().onKernelChange( Kernel.EDGE.array );
-			return true;
-		default:
-			return super.onOptionsItemSelected(item);
+			break;
 		}
+		return super.onOptionsItemSelected(item);
 	}
 	
 	private boolean ensureOpenGLES20() 
