@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="title_books">Books</string>
+    <string name="title_convolution">Camera Convolution</string>
+    <string name="title_about">About</string>
+</resources>
